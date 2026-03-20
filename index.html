@@ -181,12 +181,12 @@ function showResult(resultDb) {
 
 // 🚆 子供向けコメント
 function getComment(db) {
-  if (db < 30) return "🚉 しずかな えき";
-  if (db < 50) return "🚶 でんしゃを まってるとき";
-  if (db < 70) return "🚃 でんしゃの なか";
-  if (db < 90) return "🚃 うるさい でんしゃ！";
-  if (db < 110) return "🚄 しんかんせん！！";
-  return "✈️ ひこうき！！すごい！！";
+  if (db < 30) return "しずか";
+  if (db < 50) return "ちょっと　うるさい";
+  if (db < 70) return "ふつうに　うるさい";
+  if (db < 90) return "かなり　うるさい！";
+  if (db < 110) return "すごく　うるさい！！";
+  return "ちょ～　うるさ～～い！！！";
 }
 </script>
 

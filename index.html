@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>音量チャレンジ</title>
+<title>うるさい！チャレンジ</title>
 
 <style>
 body {
@@ -34,7 +34,7 @@ h1 {
   margin: 20px 0;
 }
 
-/* 🔴 レッドゾーン（右1/4） */
+/* 🔴 レッドゾーン */
 #meter::after {
   content: "";
   position: absolute;
@@ -74,7 +74,7 @@ button {
 
 <body>
 
-<h1>🎤 音量チャレンジ</h1>
+<h1>🎤 うるさい！チャレンジ</h1>
 
 <div id="meter">
   <div id="bar"></div>
@@ -93,7 +93,7 @@ async function start() {
   document.getElementById("bar").style.width = "0%";
   document.getElementById("comment").innerText = "";
 
-  // カウントダウン表示
+  // カウントダウン開始
   document.getElementById("db").style.fontSize = "20vw";
   document.getElementById("db").innerText = "5";
 
@@ -121,7 +121,7 @@ async function start() {
 
     let volume = Math.sqrt(sum / dataArray.length);
 
-    // ヒステリシス
+    // ヒステリシス（安定化）
     if (isSilent) {
       if (volume > 0.03) isSilent = false;
     } else {
@@ -130,10 +130,11 @@ async function start() {
 
     if (isSilent) volume = 0;
 
-    // 🔥 スケール調整（低め）
-    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + 70);
+    // 🔥 現実寄り調整（ここ重要）
+    let offset = 55;
+    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + offset);
 
-    // 🔥 上限150
+    // 上限
     db = Math.min(db, 150);
 
     if (db > maxDb) maxDb = db;
@@ -167,7 +168,6 @@ function showResult(resultDb) {
   function animate() {
     current += 1;
 
-    // 🔥 150スケール
     let percent = (current / 150) * 100;
     bar.style.width = percent + "%";
 
@@ -185,7 +185,7 @@ function showResult(resultDb) {
   animate();
 }
 
-// コメント
+// 👶 コメント（あなた仕様）
 function getComment(db) {
   if (db < 30) return "しずか";
   if (db < 50) return "ちょっと　うるさい";

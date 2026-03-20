@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>音量メーター</title>
+<title>音量チャレンジ</title>
 <style>
   body {
     font-family: sans-serif;
@@ -10,9 +10,8 @@
     background: #111;
     color: #fff;
   }
-  h1 {
-    margin-top: 20px;
-  }
+  h1 { margin-top: 20px; }
+
   #meter {
     width: 80%;
     height: 30px;
@@ -21,15 +20,17 @@
     border-radius: 20px;
     overflow: hidden;
   }
+
   #bar {
     height: 100%;
     width: 0%;
     background: lime;
-    transition: width 0.1s;
   }
+
   #db {
     font-size: 2em;
   }
+
   button {
     padding: 10px 20px;
     font-size: 1em;
@@ -42,7 +43,7 @@
 </head>
 <body>
 
-<h1>🎤 音量メーター</h1>
+<h1>🎤 音量チャレンジ</h1>
 <button onclick="start()">スタート</button>
 
 <div id="meter">
@@ -53,7 +54,7 @@
 
 <script>
 let audioContext, analyser, microphone;
-let isSilent = true; // ヒステリシス用
+let isSilent = true;
 
 async function start() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -66,7 +67,10 @@ async function start() {
 
   const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-  function update() {
+  let maxDb = 0;
+  let startTime = Date.now();
+
+  function measure() {
     analyser.getByteTimeDomainData(dataArray);
 
     let sum = 0;
@@ -77,52 +81,56 @@ async function start() {
 
     let volume = Math.sqrt(sum / dataArray.length);
 
-    // 🔥 ヒステリシス付きノイズ制御（安定化の核心）
+    // ヒステリシス
     if (isSilent) {
-      if (volume > 0.03) {
-        isSilent = false;
-      }
+      if (volume > 0.03) isSilent = false;
     } else {
-      if (volume < 0.015) {
-        isSilent = true;
-      }
+      if (volume < 0.015) isSilent = true;
     }
 
     if (isSilent) volume = 0;
 
-    // 🔢 dB計算
-    let db = volume === 0 
-      ? 0 
-      : Math.round(20 * Math.log10(volume) + 90);
-
-    // 🔒 上限
+    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + 90);
     db = Math.min(db, 130);
 
-    // 🎯 状態表示
-    let status = "";
-    if (db < 60) status = "静か";
-    else if (db < 80) status = "普通";
-    else if (db < 100) status = "大きい";
-    else status = "かなり大きい！";
+    // 最大値更新
+    if (db > maxDb) maxDb = db;
 
-    document.getElementById("db").innerText = db + " dB (" + status + ")";
+    document.getElementById("db").innerText = "測定中: " + db + " dB";
 
-    // 📊 メーター割合
-    let maxDb = 130;
-    let percent = (db / maxDb) * 100;
-    document.getElementById("bar").style.width = percent + "%";
-
-    // 🎨 色変化
-    let bar = document.getElementById("bar");
-    if (db < 60) bar.style.background = "lime";
-    else if (db < 80) bar.style.background = "yellow";
-    else if (db < 100) bar.style.background = "orange";
-    else bar.style.background = "red";
-
-    requestAnimationFrame(update);
+    if (Date.now() - startTime < 5000) {
+      requestAnimationFrame(measure);
+    } else {
+      showResult(maxDb);
+    }
   }
 
-  update();
+  measure();
+}
+
+// 🎉 結果演出
+function showResult(resultDb) {
+  let bar = document.getElementById("bar");
+  let dbText = document.getElementById("db");
+
+  let current = 0;
+
+  function animate() {
+    current += 1;
+
+    let percent = (current / 130) * 100;
+    bar.style.width = percent + "%";
+
+    dbText.innerText = "結果: " + current + " dB";
+
+    if (current < resultDb) {
+      requestAnimationFrame(animate);
+    } else {
+      dbText.innerText = "結果: " + resultDb + " dB 🎉";
+    }
+  }
+
+  animate();
 }
 </script>
 

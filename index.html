@@ -10,6 +10,7 @@
     background: #111;
     color: #fff;
   }
+
   h1 { margin-top: 20px; }
 
   #meter {
@@ -19,6 +20,18 @@
     margin: 30px auto;
     border-radius: 20px;
     overflow: hidden;
+    position: relative;
+  }
+
+  /* 🔴 レッドゾーン（右1/4） */
+  #meter::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 25%;
+    height: 100%;
+    background: rgba(255, 0, 0, 0.3);
   }
 
   #bar {
@@ -31,13 +44,25 @@
     font-size: 2em;
   }
 
+  #comment {
+    margin-top: 10px;
+    font-size: 1.2em;
+    color: #ccc;
+  }
+
+  /* 🔥 ボタン大きく */
   button {
-    padding: 10px 20px;
-    font-size: 1em;
-    border-radius: 10px;
+    padding: 20px 40px;
+    font-size: 1.5em;
+    border-radius: 15px;
     border: none;
     background: #0af;
     color: white;
+    margin-top: 20px;
+  }
+
+  button:active {
+    transform: scale(0.95);
   }
 </style>
 </head>
@@ -51,12 +76,18 @@
 </div>
 
 <div id="db">0 dB</div>
+<div id="comment"></div>
 
 <script>
 let audioContext, analyser, microphone;
 let isSilent = true;
 
 async function start() {
+  // 🔄 リセット
+  document.getElementById("bar").style.width = "0%";
+  document.getElementById("db").innerText = "測定中...";
+  document.getElementById("comment").innerText = "";
+
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   audioContext = new AudioContext();
   analyser = audioContext.createAnalyser();
@@ -93,7 +124,6 @@ async function start() {
     let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + 90);
     db = Math.min(db, 130);
 
-    // 最大値更新
     if (db > maxDb) maxDb = db;
 
     document.getElementById("db").innerText = "測定中: " + db + " dB";
@@ -112,6 +142,7 @@ async function start() {
 function showResult(resultDb) {
   let bar = document.getElementById("bar");
   let dbText = document.getElementById("db");
+  let comment = document.getElementById("comment");
 
   let current = 0;
 
@@ -127,10 +158,21 @@ function showResult(resultDb) {
       requestAnimationFrame(animate);
     } else {
       dbText.innerText = "結果: " + resultDb + " dB 🎉";
+      comment.innerText = getComment(resultDb);
     }
   }
 
   animate();
+}
+
+// 💬 コメント機能
+function getComment(db) {
+  if (db < 30) return "🚉 えきのホームが しずかなとき くらい";
+  if (db < 50) return "🚶‍♂️ でんしゃを まってるとき くらい";
+  if (db < 70) return "🚃 でんしゃの なか くらい";
+  if (db < 90) return "🚃 ガタンゴトン！うるさい でんしゃみたい";
+  if (db < 110) return "🚄 しんかんせんが とおるときみたい！";
+  return "✈️ ひこうきが ちかくに いるみたい！！すごい！";
 }
 </script>
 

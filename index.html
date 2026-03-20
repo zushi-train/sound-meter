@@ -75,10 +75,38 @@ async function start() {
     }
 
     let volume = Math.sqrt(sum / dataArray.length);
-    let db = Math.round(20 * Math.log10(volume + 0.0001) + 100);
 
-    document.getElementById("db").innerText = db + " dB";
-    document.getElementById("bar").style.width = db + "%";
+    // 🔇 ノイズカット（ここ調整OK）
+    if (volume < 0.02) volume = 0;
+
+    // 🔢 dB計算
+    let db = volume === 0 
+      ? 0 
+      : Math.round(20 * Math.log10(volume) + 90);
+
+    // 🔒 上限
+    db = Math.min(db, 130);
+
+    // 🎯 状態表示
+    let status = "";
+    if (db < 60) status = "静か";
+    else if (db < 80) status = "普通";
+    else if (db < 100) status = "大きい";
+    else status = "かなり大きい！";
+
+    document.getElementById("db").innerText = db + " dB (" + status + ")";
+
+    // 📊 メーター割合
+    let maxDb = 130;
+    let percent = (db / maxDb) * 100;
+    document.getElementById("bar").style.width = percent + "%";
+
+    // 🎨 色変化
+    let bar = document.getElementById("bar");
+    if (db < 60) bar.style.background = "lime";
+    else if (db < 80) bar.style.background = "yellow";
+    else if (db < 100) bar.style.background = "orange";
+    else bar.style.background = "red";
 
     requestAnimationFrame(update);
   }

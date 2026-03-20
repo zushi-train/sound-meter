@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>うるさい！チャレンジ</title>
+<title>音量チャレンジ</title>
 
 <style>
 body {
@@ -34,6 +34,7 @@ h1 {
   margin: 20px 0;
 }
 
+/* 🔴 レッドゾーン（右1/4） */
 #meter::after {
   content: "";
   position: absolute;
@@ -73,7 +74,7 @@ button {
 
 <body>
 
-<h1>🎤 うるさい！チャレンジ</h1>
+<h1>🎤 音量チャレンジ</h1>
 
 <div id="meter">
   <div id="bar"></div>
@@ -92,7 +93,7 @@ async function start() {
   document.getElementById("bar").style.width = "0%";
   document.getElementById("comment").innerText = "";
 
-  // 🔥 スタート時に5表示
+  // カウントダウン表示
   document.getElementById("db").style.fontSize = "20vw";
   document.getElementById("db").innerText = "5";
 
@@ -120,6 +121,7 @@ async function start() {
 
     let volume = Math.sqrt(sum / dataArray.length);
 
+    // ヒステリシス
     if (isSilent) {
       if (volume > 0.03) isSilent = false;
     } else {
@@ -128,8 +130,11 @@ async function start() {
 
     if (isSilent) volume = 0;
 
-    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + 90);
-    db = Math.min(db, 130);
+    // 🔥 スケール調整（低め）
+    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + 70);
+
+    // 🔥 上限150
+    db = Math.min(db, 150);
 
     if (db > maxDb) maxDb = db;
 
@@ -138,7 +143,7 @@ async function start() {
 
     if (remaining > 0) {
       document.getElementById("db").innerHTML =
-  remaining + "<br><span style='font-size:5vw'>🔴 計測中</span>";
+        remaining + "<br><span style='font-size:5vw'>🔴 計測中</span>";
     }
 
     if (elapsed < 5) {
@@ -151,7 +156,7 @@ async function start() {
   measure();
 }
 
-// 🎉 結果演出
+// 結果演出
 function showResult(resultDb) {
   let bar = document.getElementById("bar");
   let dbText = document.getElementById("db");
@@ -162,7 +167,8 @@ function showResult(resultDb) {
   function animate() {
     current += 1;
 
-    let percent = (current / 130) * 100;
+    // 🔥 150スケール
+    let percent = (current / 150) * 100;
     bar.style.width = percent + "%";
 
     dbText.style.fontSize = "10vw";
@@ -171,7 +177,7 @@ function showResult(resultDb) {
     if (current < resultDb) {
       requestAnimationFrame(animate);
     } else {
-      dbText.innerText = resultDb + " デシベル 🎉";
+      dbText.innerText = resultDb + " dB 🎉";
       comment.innerText = getComment(resultDb);
     }
   }
@@ -179,13 +185,13 @@ function showResult(resultDb) {
   animate();
 }
 
-// 🚆 子供向けコメント
+// コメント
 function getComment(db) {
   if (db < 30) return "しずか";
   if (db < 50) return "ちょっと　うるさい";
   if (db < 70) return "ふつうに　うるさい";
   if (db < 90) return "かなり　うるさい！";
-  if (db < 110) return "すごく　うるさい！！";
+  if (db < 120) return "すごく　うるさい！！";
   return "ちょ～　うるさ～～い！！！";
 }
 </script>

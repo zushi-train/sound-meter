@@ -50,7 +50,7 @@ h1 {
 }
 
 #db {
-  font-size: 20vw; /* 🔥 カウントダウン巨大化 */
+  font-size: 20vw;
   font-weight: bold;
 }
 
@@ -79,7 +79,7 @@ button {
   <div id="bar"></div>
 </div>
 
-<div id="db">5</div>
+<div id="db">▶ スタートをおしてね</div>
 <div id="comment"></div>
 
 <button onclick="start()">スタート</button>
@@ -91,6 +91,10 @@ let isSilent = true;
 async function start() {
   document.getElementById("bar").style.width = "0%";
   document.getElementById("comment").innerText = "";
+
+  // 🔥 スタート時に5表示
+  document.getElementById("db").style.fontSize = "20vw";
+  document.getElementById("db").innerText = "5";
 
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   audioContext = new AudioContext();
@@ -133,7 +137,6 @@ async function start() {
     let remaining = Math.ceil(5 - elapsed);
 
     if (remaining > 0) {
-      // 🔥 数字だけ大きく表示
       document.getElementById("db").innerText = remaining;
     }
 
@@ -147,6 +150,7 @@ async function start() {
   measure();
 }
 
+// 🎉 結果演出
 function showResult(resultDb) {
   let bar = document.getElementById("bar");
   let dbText = document.getElementById("db");
@@ -160,7 +164,7 @@ function showResult(resultDb) {
     let percent = (current / 130) * 100;
     bar.style.width = percent + "%";
 
-    dbText.style.fontSize = "10vw"; // 結果は少し小さく
+    dbText.style.fontSize = "10vw";
     dbText.innerText = current + " dB";
 
     if (current < resultDb) {
@@ -174,6 +178,7 @@ function showResult(resultDb) {
   animate();
 }
 
+// 🚆 子供向けコメント
 function getComment(db) {
   if (db < 30) return "🚉 しずかな えき";
   if (db < 50) return "🚶 でんしゃを まってるとき";

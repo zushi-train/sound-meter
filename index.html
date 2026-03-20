@@ -50,7 +50,8 @@ h1 {
 }
 
 #db {
-  font-size: 12vw;
+  font-size: 20vw; /* 🔥 カウントダウン巨大化 */
+  font-weight: bold;
 }
 
 #comment {
@@ -78,7 +79,7 @@ button {
   <div id="bar"></div>
 </div>
 
-<div id="db">0 dB</div>
+<div id="db">5</div>
 <div id="comment"></div>
 
 <button onclick="start()">スタート</button>
@@ -89,7 +90,6 @@ let isSilent = true;
 
 async function start() {
   document.getElementById("bar").style.width = "0%";
-  document.getElementById("db").innerText = "測定中...";
   document.getElementById("comment").innerText = "";
 
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -129,9 +129,15 @@ async function start() {
 
     if (db > maxDb) maxDb = db;
 
-    document.getElementById("db").innerText = "測定中: " + db + " dB";
+    let elapsed = (Date.now() - startTime) / 1000;
+    let remaining = Math.ceil(5 - elapsed);
 
-    if (Date.now() - startTime < 5000) {
+    if (remaining > 0) {
+      // 🔥 数字だけ大きく表示
+      document.getElementById("db").innerText = remaining;
+    }
+
+    if (elapsed < 5) {
       requestAnimationFrame(measure);
     } else {
       showResult(maxDb);
@@ -154,12 +160,13 @@ function showResult(resultDb) {
     let percent = (current / 130) * 100;
     bar.style.width = percent + "%";
 
-    dbText.innerText = "結果: " + current + " dB";
+    dbText.style.fontSize = "10vw"; // 結果は少し小さく
+    dbText.innerText = current + " dB";
 
     if (current < resultDb) {
       requestAnimationFrame(animate);
     } else {
-      dbText.innerText = "結果: " + resultDb + " dB 🎉";
+      dbText.innerText = resultDb + " デシベル 🎉";
       comment.innerText = getComment(resultDb);
     }
   }

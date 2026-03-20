@@ -53,6 +53,7 @@
 
 <script>
 let audioContext, analyser, microphone;
+let isSilent = true; // ヒステリシス用
 
 async function start() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -76,8 +77,18 @@ async function start() {
 
     let volume = Math.sqrt(sum / dataArray.length);
 
-    // 🔇 ノイズカット（ここ調整OK）
-    if (volume < 0.02) volume = 0;
+    // 🔥 ヒステリシス付きノイズ制御（安定化の核心）
+    if (isSilent) {
+      if (volume > 0.03) {
+        isSilent = false;
+      }
+    } else {
+      if (volume < 0.015) {
+        isSilent = true;
+      }
+    }
+
+    if (isSilent) volume = 0;
 
     // 🔢 dB計算
     let db = volume === 0 

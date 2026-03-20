@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>音量チャレンジ</title>
+<title>うるさい！チャレンジ</title>
 
 <style>
 body {
@@ -137,7 +137,8 @@ async function start() {
     let remaining = Math.ceil(5 - elapsed);
 
     if (remaining > 0) {
-      document.getElementById("db").innerText = remaining;
+      document.getElementById("db").innerHTML =
+  remaining + "<br><span style='font-size:5vw'>🔴 計測中</span>";
     }
 
     if (elapsed < 5) {

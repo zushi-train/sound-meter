@@ -1,37 +1,41 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>音量チャレンジ</title>
 <style>
   body {
     font-family: sans-serif;
-    text-align: center;
     background: #111;
     color: #fff;
+    margin: 0;
+
+    /* 🔥 画面中央配置 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
   }
 
-  h1 { margin-top: 20px; }
+  h1 {
+    font-size: 6vw; /* 画面に応じて伸縮 */
+    margin-bottom: 20px;
+  }
 
   #meter {
-    width: 80%;
-    height: 30px;
+    width: 90%;
+    height: 8vh; /* 高さ大きく */
     background: #333;
-    margin: 30px auto;
-    border-radius: 20px;
+    border-radius: 30px;
     overflow: hidden;
     position: relative;
+    margin: 20px 0;
   }
 
-  /* 🔴 レッドゾーン（右1/4） */
   #meter::after {
     content: "";
     position: absolute;
     right: 0;
-    top: 0;
     width: 25%;
     height: 100%;
-    background: rgba(255, 0, 0, 0.3);
+    background: rgba(255,0,0,0.3);
   }
 
   #bar {
@@ -41,140 +45,22 @@
   }
 
   #db {
-    font-size: 2em;
+    font-size: 10vw; /* 🔥 超大きい */
+    margin-top: 10px;
   }
 
   #comment {
+    font-size: 5vw;
     margin-top: 10px;
-    font-size: 1.2em;
-    color: #ccc;
   }
 
-  /* 🔥 ボタン大きく */
   button {
+    font-size: 6vw;
     padding: 20px 40px;
-    font-size: 1.5em;
-    border-radius: 15px;
+    border-radius: 20px;
     border: none;
     background: #0af;
     color: white;
-    margin-top: 20px;
-  }
-
-  button:active {
-    transform: scale(0.95);
+    margin-top: 30px;
   }
 </style>
-</head>
-<body>
-
-<h1>🎤 音量チャレンジ</h1>
-<button onclick="start()">スタート</button>
-
-<div id="meter">
-  <div id="bar"></div>
-</div>
-
-<div id="db">0 dB</div>
-<div id="comment"></div>
-
-<script>
-let audioContext, analyser, microphone;
-let isSilent = true;
-
-async function start() {
-  // 🔄 リセット
-  document.getElementById("bar").style.width = "0%";
-  document.getElementById("db").innerText = "測定中...";
-  document.getElementById("comment").innerText = "";
-
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  audioContext = new AudioContext();
-  analyser = audioContext.createAnalyser();
-  microphone = audioContext.createMediaStreamSource(stream);
-
-  microphone.connect(analyser);
-  analyser.fftSize = 256;
-
-  const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-  let maxDb = 0;
-  let startTime = Date.now();
-
-  function measure() {
-    analyser.getByteTimeDomainData(dataArray);
-
-    let sum = 0;
-    for (let i = 0; i < dataArray.length; i++) {
-      let val = (dataArray[i] - 128) / 128;
-      sum += val * val;
-    }
-
-    let volume = Math.sqrt(sum / dataArray.length);
-
-    // ヒステリシス
-    if (isSilent) {
-      if (volume > 0.03) isSilent = false;
-    } else {
-      if (volume < 0.015) isSilent = true;
-    }
-
-    if (isSilent) volume = 0;
-
-    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + 90);
-    db = Math.min(db, 130);
-
-    if (db > maxDb) maxDb = db;
-
-    document.getElementById("db").innerText = "測定中: " + db + " dB";
-
-    if (Date.now() - startTime < 5000) {
-      requestAnimationFrame(measure);
-    } else {
-      showResult(maxDb);
-    }
-  }
-
-  measure();
-}
-
-// 🎉 結果演出
-function showResult(resultDb) {
-  let bar = document.getElementById("bar");
-  let dbText = document.getElementById("db");
-  let comment = document.getElementById("comment");
-
-  let current = 0;
-
-  function animate() {
-    current += 1;
-
-    let percent = (current / 130) * 100;
-    bar.style.width = percent + "%";
-
-    dbText.innerText = "結果: " + current + " dB";
-
-    if (current < resultDb) {
-      requestAnimationFrame(animate);
-    } else {
-      dbText.innerText = "結果: " + resultDb + " dB 🎉";
-      comment.innerText = getComment(resultDb);
-    }
-  }
-
-  animate();
-}
-
-// 💬 コメント機能
-function getComment(db) {
-  if (db < 30) return "🚉 えきのホームが しずかなとき くらい";
-  if (db < 50) return "🚶‍♂️ でんしゃを まってるとき くらい";
-  if (db < 70) return "🚃 でんしゃの なか くらい";
-  if (db < 90) return "🚃 ガタンゴトン！うるさい でんしゃみたい";
-  if (db < 110) return "🚄 しんかんせんが とおるときみたい！";
-  return "✈️ ひこうきが ちかくに いるみたい！！すごい！";
-}
-</script>
-
-</body>
-</html>

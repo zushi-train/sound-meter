@@ -129,7 +129,7 @@ async function start() {
       sum += val * val;
     }
 
-    let volume = Math.sqrt(sum / dataArray.length);
+    let volume = Math.sqrt(sum / dataArray.length) * 3;
 
     if (isSilent) {
       if (volume > 0.03) isSilent = false;

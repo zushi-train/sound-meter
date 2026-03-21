@@ -34,7 +34,6 @@ h1 {
   margin: 20px 0;
 }
 
-/* 🔴 レッドゾーン */
 #meter::after {
   content: "";
   position: absolute;
@@ -51,8 +50,19 @@ h1 {
 }
 
 #db {
-  font-size: 20vw;
+  font-size: 10vw;
   font-weight: bold;
+}
+
+/* 🔴 点滅 */
+.blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
 }
 
 #comment {
@@ -93,9 +103,9 @@ async function start() {
   document.getElementById("bar").style.width = "0%";
   document.getElementById("comment").innerText = "";
 
-  // カウントダウン開始
-  document.getElementById("db").style.fontSize = "20vw";
-  document.getElementById("db").innerText = "5";
+  // 🔴 点滅付き表示
+  document.getElementById("db").innerHTML =
+    "<span class='blink'>🔴</span> 計測中";
 
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   audioContext = new AudioContext();
@@ -121,7 +131,6 @@ async function start() {
 
     let volume = Math.sqrt(sum / dataArray.length);
 
-    // ヒステリシス（安定化）
     if (isSilent) {
       if (volume > 0.03) isSilent = false;
     } else {
@@ -130,22 +139,13 @@ async function start() {
 
     if (isSilent) volume = 0;
 
-    // 🔥 現実寄り調整（ここ重要）
     let offset = 55;
     let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + offset);
-
-    // 上限
     db = Math.min(db, 150);
 
     if (db > maxDb) maxDb = db;
 
     let elapsed = (Date.now() - startTime) / 1000;
-    let remaining = Math.ceil(5 - elapsed);
-
-    if (remaining > 0) {
-      document.getElementById("db").innerHTML =
-        remaining + "<br><span style='font-size:5vw'>🔴 計測中</span>";
-    }
 
     if (elapsed < 5) {
       requestAnimationFrame(measure);
@@ -157,7 +157,7 @@ async function start() {
   measure();
 }
 
-// 結果演出
+// 結果
 function showResult(resultDb) {
   let bar = document.getElementById("bar");
   let dbText = document.getElementById("db");
@@ -177,7 +177,7 @@ function showResult(resultDb) {
     if (current < resultDb) {
       requestAnimationFrame(animate);
     } else {
-      dbText.innerText = resultDb + " デシベル 🎉";
+      dbText.innerText = resultDb + " dB 🎉";
       comment.innerText = getComment(resultDb);
     }
   }
@@ -185,7 +185,6 @@ function showResult(resultDb) {
   animate();
 }
 
-// 👶 コメント（あなた仕様）
 function getComment(db) {
   if (db < 30) return "しずか";
   if (db < 50) return "ちょっと　うるさい";

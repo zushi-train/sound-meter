@@ -140,8 +140,16 @@ async function start() {
     if (isSilent) volume = 0;
 
     let offset = 55;
-    let db = volume === 0 ? 0 : Math.round(20 * Math.log10(volume) + offset);
-    db = Math.min(db, 150);
+
+let db = volume === 0
+  ? 0
+  : (20 * Math.log10(volume) + offset);
+
+// 🔥 少し揺らぎを追加（±1dB）
+db += (Math.random() * 2 - 1);
+
+// 🔥 最終的に整数化
+db = Math.round(db);
 
     if (db > maxDb) maxDb = db;
 
